@@ -3,14 +3,11 @@ import router from "@/router";
 import { ElMessage } from 'element-plus';
 
 const request = axios.create({
-    // baseURL: 'http://127.0.0.1:8080', // 替换为实际的后端API地址
+    baseURL: 'http://47.113.109.49:6001',
     timeout: 10000,
     headers: {
-        // 'X-Requested-With': 'XMLHttpRequest',
         'Content-Type': 'application/json'
-        // 'Content-Type': 'text/html, application/json; charset=UTF-8'
     },
-    // withCredentials: true
 });
 
 request.interceptors.request.use(

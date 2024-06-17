@@ -146,7 +146,7 @@ INSERT INTO Users (userId, username, password, avatarUrl, status) VALUES ('65432
 
 ```mysql
 CREATE TABLE IF NOT EXISTS Chats (
-  chatId CHAR(36) PRIMARY KEY,
+  chatId CHAR(36) NOT NULL PRIMARY KEY,
   type ENUM('single', 'double', 'group') DEFAULT 'double',
   name VARCHAR(255),
   lastUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -180,7 +180,7 @@ INSERT INTO Participants (chatId, userId) VALUES ('1', '654321');
 
 ```mysql
 CREATE TABLE IF NOT EXISTS Messages (
-  messageId CHAR(36) PRIMARY KEY,
+  messageId CHAR(36) NOT NULL PRIMARY KEY,
   chatId CHAR(36) NOT NULL,
   fromUserId CHAR(36) NOT NULL,
   toUserId CHAR(36),
@@ -208,6 +208,47 @@ VALUES ('4', '1', '654321', '123456', 'Here is a picture from my trip.', NOW() +
 INSERT INTO Messages (messageId, chatId, fromUserId, toUserId, content, timestamp, type, status, readReceipt) 
 VALUES ('5', '1', '123456', '654321', 'Check out this funny video!', NOW() + INTERVAL 20 MINUTE, 'text', 'delivered', FALSE);
 ```
+
+### 5.好友关系表（Friends）
+
+```mysql
+CREATE TABLE Friends (
+    userId1 CHAR(36) NOT NULL,
+    userId2 CHAR(36) NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'accepted', 'blocked') NOT NULL DEFAULT 'pending',
+    PRIMARY KEY (userId1, userId2),
+    FOREIGN KEY (userId1) REFERENCES Users(userId),
+    FOREIGN KEY (userId2) REFERENCES Users(userId)
+);
+```
+
+```mysql
+INSERT INTO Friends (userId1, userId2, status) VALUES ('123456', '654321', 'accepted');
+```
+
+### 6.好友申请表（FriendRequests）
+
+```mysql
+CREATE TABLE FriendRequests (
+    requestId CHAR(36) NOT NULL PRIMARY KEY,
+    fromUserId CHAR(36) NOT NULL,
+    toUserId CHAR(36) NOT NULL,
+    status ENUM('pending', 'accepted', 'declined', 'cancelled') NOT NULL DEFAULT 'pending',
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    message TEXT,
+    FOREIGN KEY (fromUserId) REFERENCES Users(userId),
+    FOREIGN KEY (toUserId) REFERENCES Users(userId)
+);
+```
+
+```mysql
+INSERT INTO FriendRequests (requestId, fromUserId, toUserId, status, message)
+VALUES ('1', '123456', '888888', 'pending', 'Hi, I\'d like to add you as a friend!');
+```
+
+
 
 ### #提高查询效率
 

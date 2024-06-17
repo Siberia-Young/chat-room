@@ -50,7 +50,6 @@ export default {
   data() {
     return {
       userId: this.$store.state.userId,
-      chatId: this.$store.state.chatId,
       isLoading: false,
       totalHeight: 0,
     };

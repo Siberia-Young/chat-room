@@ -47,6 +47,7 @@ export default {
             sessionStorage.setItem("userId", res.data.userId);
             this.$store.commit("setToken", res.data.token);
             this.$store.commit("setUserId", res.data.userId);
+            this.$store.commit("setChatId", res.data.chatId);
             this.$router.push("/");
           } else {
             this.$message.error("登录失败");
