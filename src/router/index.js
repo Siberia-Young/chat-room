@@ -21,7 +21,15 @@ const routes = [{
             path: '/ChatView',
             name: 'ChatView',
             component: () => import('@/views/ChatView.vue'),
-        }, ]
+        }, {
+            path: '/PeopleView',
+            name: 'PeopleView',
+            component: () => import('@/views/PeopleView.vue'),
+        }, {
+            path: '/FriendView',
+            name: 'FriendView',
+            component: () => import('@/views/FriendView.vue'),
+        }]
     }
 ];
 

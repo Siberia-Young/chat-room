@@ -1,6 +1,10 @@
 <template>
   <div class="chat-view">
-    <div class="header"></div>
+    <div class="header">
+      {{ headerContent.chatName }}({{ headerContent.chatType }})-{{
+        headerContent.status
+      }}
+    </div>
     <ChatDisplay
       class="chat-display"
       :init="init"
@@ -35,7 +39,6 @@ export default {
   data() {
     return {
       userId: this.$store.state.userId,
-      websocket: null,
       inputText: "",
       chatText: "",
       waiting: false,
@@ -46,8 +49,38 @@ export default {
     };
   },
   computed: {
+    headerContent() {
+      let temp = this.chatList.filter((chat) => chat.chatId === this.chatId);
+      if (temp.length === 0) return { chatName: "", chatType: "", status: "" };
+      temp = temp[0];
+      let res = {
+        chatName: temp.chatName,
+        chatType:
+          temp.chatType === "single"
+            ? "个人"
+            : temp.chatType === "double"
+            ? "好友"
+            : "群聊",
+        status:
+          temp.chatType === "double"
+            ? this.friendList.filter(
+                (friend) => friend.userId === temp.friendId
+              )[0].status
+            : "",
+      };
+      return res;
+    },
+    websocket() {
+      return this.$store.state.websocket;
+    },
     chatId() {
       return this.$store.state.chatId;
+    },
+    chatList() {
+      return this.$store.state.chatList;
+    },
+    friendList() {
+      return this.$store.state.friendList;
     },
   },
   watch: {
@@ -65,58 +98,9 @@ export default {
   created() {},
   updated() {},
   mounted() {
-    this.openSocket();
-  },
-  beforeUnmount() {
-    this.closeSocket();
+    this.initChat();
   },
   methods: {
-    openSocket() {
-      this.waiting = true;
-      this.websocket = new WebSocket(
-        `ws://47.113.109.49:6002/${this.userId}/${this.$store.state.token}`
-      );
-      this.websocket.binaryType = "arraybuffer"; //传输的是 ArrayBuffer 类型的数据
-      this.websocket.onopen = (event) => {
-        console.log("WebSocket连接成功：", event);
-        console.log("chatId: ", this.chatId);
-        this.waiting = false;
-        this.initChat();
-      };
-
-      this.websocket.onmessage = (msg) => {
-        let data = JSON.parse(msg.data);
-        console.log("路径：", data.operate);
-        if (data.operate === "logout") {
-          console.log(data.data);
-          window.location.href = "/";
-        } else if (data.operate === "error_1" || data.operate === "error_2") {
-          this.$message.error(data.data);
-        } else if (data.operate === "insert_message") {
-          if (data.data.chatId === this.chatId) {
-            this.messages.push(data.data);
-            if (data.data.fromUserId === this.userId) {
-              this.inputText = "";
-            }
-            this.scrollToBottom();
-          }
-        } else if (data.operate === "update_chat_record_last_updated") {
-          let data = JSON.parse(msg.data);
-          console.log(data);
-        }
-      };
-
-      this.websocket.onerror = (err) => {
-        console.log("WebSocket连接出错：", err);
-      };
-
-      this.websocket.onclose = (event) => {
-        console.log("WebSocket连接关闭: ", event);
-      };
-    },
-    closeSocket() {
-      this.websocket.close();
-    },
     initChat() {
       this.participants = [];
       this.messages = [];
@@ -128,9 +112,7 @@ export default {
     getMoreChatContent() {
       this.$refs.chatDisplay.changeState(true);
       this.$request
-        .get(
-          `http://47.113.109.49:6001/get_chat_record_by_chatId/${this.chatId}`
-        )
+        .get(`get_messages_by_chatId/${this.chatId}`)
         .then((res) => {
           console.log(res);
           this.messages = res.data.data;
@@ -148,9 +130,7 @@ export default {
     },
     getParticipants() {
       this.$request
-        .get(
-          `http://47.113.109.49:6001/get_participants_by_chatId/${this.chatId}`
-        )
+        .get(`get_participants_by_chatId/${this.chatId}`)
         .then((res) => {
           console.log(res);
           this.participants = res.data.data;
@@ -176,6 +156,9 @@ export default {
         });
         this.websocket.send(data);
       }
+    },
+    modifyInputText(text) {
+      this.inputText = text;
     },
   },
 };

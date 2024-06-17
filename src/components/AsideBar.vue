@@ -4,22 +4,35 @@
     <div class="aside-body" @scroll="touchBottom">
       <div class="chat-history">
         <ul>
-          <li v-for="chatRecord in chatRecordList" :key="chatRecord.chatId">
+          <li v-for="chat in chatList" :key="chat.chatId">
             <div
               class="chat-item"
-              :class="{ selected: chatRecord.chatId === this.$store.state.chatId }"
-              :data-chatId="chatRecord.chatId"
+              :class="{
+                selected: chat.chatId === this.$store.state.chatId,
+              }"
+              :data-chatId="chat.chatId"
               @click="selectChatItem"
             >
-              <div class="chat-item-title">{{ chatRecord.chatName }}</div>
+              <div class="chat-item-title">
+                {{ chat.chatName
+                }}<span
+                  >({{
+                    chat.chatType === "single"
+                      ? "个人"
+                      : chat.chatType === "double"
+                      ? "好友"
+                      : "群聊"
+                  }})</span
+                >
+              </div>
               <div class="second-line">
-                <div class="chat-item-number">
-                  {{ chatRecord.latestMessageFromNickname }}：{{
-                    chatRecord.latestMessageContent
+                <div class="chat-item-msg">
+                  {{ chat.latestMessageFromNickname }}：{{
+                    chat.latestMessageContent
                   }}
                 </div>
                 <div class="chat-item-time">
-                  {{ timestampToTime(chatRecord.latestMessageTime) }}
+                  {{ timestampToTime(chat.latestMessageTime) }}
                 </div>
               </div>
               <img
@@ -38,8 +51,8 @@
       />
     </div>
     <div class="operate">
-      <button class="double">找人聊天</button>
-      <button class="group">发起群聊</button>
+      <button class="double" @click="doubleChat">找人聊天</button>
+      <button class="group" @click="groupChat">发起群聊</button>
     </div>
   </div>
 </template>
@@ -51,38 +64,17 @@ export default {
     return {
       userId: this.$store.state.userId,
       isLoading: false,
-      chatRecordList: [],
     };
   },
-  created() {
-    this.getChatList();
+  computed: {
+    chatList() {
+      return this.$store.state.chatList;
+    },
   },
   methods: {
-    getChatList() {
-      this.isLoading = true;
-      this.$request
-        .get(
-          `http://47.113.109.49:6001/get_chat_record_list_by_userId/${this.userId}`
-        )
-        .then((res) => {
-          this.chatRecordList = res.data.data;
-          this.$store.commit(
-            "setChatId",
-            this.chatRecordList.filter((item) => item.chatType === "single")[0]
-              .chatId
-          );
-          console.log(this.chatRecordList);
-        })
-        .catch((err) => {
-          console.error(err);
-        })
-        .finally(() => {
-          this.isLoading = false;
-        });
-    },
     selectChatItem(event) {
+      this.$router.push("/ChatView");
       this.$store.commit("setChatId", event.currentTarget.dataset.chatid);
-      console.log(this.$store.state.chatId);
     },
     timestampToTime(timestamp) {
       const date = new Date(timestamp);
@@ -96,6 +88,11 @@ export default {
       const m = date.getMinutes() + ":";
       const s = date.getSeconds();
       return Y + M + D + h + m + s;
+    },
+    doubleChat() {
+      this.$router.push("/FriendView");
+    },
+    groupChat() {
     },
   },
 };
@@ -187,6 +184,10 @@ export default {
   margin-bottom: 5px;
 }
 
+.aside-bar .chat-item-title span {
+  font-size: 12px;
+}
+
 .aside-bar .second-line {
   display: flex;
   flex-direction: row;
@@ -194,7 +195,7 @@ export default {
   padding-left: 0;
 }
 
-.aside-bar .chat-item-number {
+.aside-bar .chat-item-msg {
   align-self: center;
   font-size: 10px;
   overflow: hidden;

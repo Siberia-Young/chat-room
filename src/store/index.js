@@ -7,9 +7,15 @@ export default createStore({
         websocket: null,
         token: "",
         userId: "",
-        chatId: ""
+        chatId: "",
+        chatList: [],
+        friendList: [],
+        friendRequestList: []
     },
     mutations: {
+        setWebsocket(state, websocket) {
+            state.websocket = websocket;
+        },
         setToken(state, token) {
             state.token = token;
         },
@@ -18,6 +24,15 @@ export default createStore({
         },
         setChatId(state, chatId) {
             state.chatId = chatId;
+        },
+        setChatList(state, chatList) {
+            state.chatList = chatList;
+        },
+        setFriendList(state, friendList) {
+            state.friendList = friendList;
+        },
+        setFriendRequestList(state, friendRequestList) {
+            state.friendRequestList = friendRequestList;
         }
     },
 })
