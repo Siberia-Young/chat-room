@@ -43,7 +43,6 @@ export default {
         } else if (data.operate === "insert_message") {
           if (data.data.message.chatId === this.$store.state.chatId) {
             this.$refs.rv.messages.push(data.data.message);
-            console.log(this.$refs.rv.messages);
             if (data.data.message.fromUserId === this.$store.state.userId) {
               this.$refs.rv.inputText = "";
             }
@@ -53,8 +52,21 @@ export default {
             (item) => item.chatId === data.data.message.chatId
           );
           let chatList = this.$store.state.chatList;
+          let chatName = chatList[chatIndex].chatName;
+          let friendId = chatList[chatIndex].friendId;
           chatList[chatIndex] = data.data.chat;
+          if (chatList[chatIndex].chatType !== "group") {
+            chatList[chatIndex].chatName = chatName;
+          }
+          chatList[chatIndex].friendId = friendId;
           this.$store.commit("setChatList", this.$store.state.chatList);
+        } else if (data.operate === "update_user_status") {
+          let friendIndex = this.$store.state.friendList.findIndex(
+            (item) => item.userId === data.data.userId
+          );
+          let friendList = this.$store.state.friendList;
+          friendList[friendIndex].status = data.data.status;
+          this.$store.commit("setFriendList", friendList);
         }
       };
 
@@ -75,6 +87,7 @@ export default {
       this.$request
         .get(`get_chat_list_by_userId/${this.$store.state.userId}`)
         .then((res) => {
+          console.log(res.data.data);
           this.$store.commit("setChatList", res.data.data);
         })
         .catch((err) => {

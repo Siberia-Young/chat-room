@@ -1,125 +1,98 @@
-# 前端接口调用返回
+## 客户端
 
-### 一、用户（User）
+### 一、主色
 
-```javascript
-{
-  "userId": "string",
-  "username": "string",
-  "avatarUrl": "string", // 用户头像的URL
-  "status": "string" // 用户状态，如在线、离线、忙碌等
-}
-```
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20191117130059381.png)
 
-### 二、消息（Message）
+#### 1.主色
 
-```javascript
-{
-  "messageId": "string",
-  "fromUser": "User", // 发送者用户信息，参考上面的User结构
-  "toUser": "User", // 接收者用户信息
-  "content": "string", // 消息内容
-  "timestamp": "string", // 消息发送的时间戳，格式如ISO 8601
-  "type": "string", // 消息类型，如文本、图片、视频等
-  "status": "string", // 消息状态，如已发送、已接收、已读等
-  "readReceipt": "boolean" // 是否已读回执
-}
-```
+#409eff
 
-### 三、聊天记录（ChatRecord）
+#### 2.渐变色
 
-```javascript
-{
-  "chatId": "string",
-  "participants": [ // 参与聊天的用户列表
-    "User",
-    "User"
-    // ...
-  ],
-  "messages": [ // 聊天中的消息列表
-    "Message",
-    "Message"
-    // ...
-  ],
-  "lastUpdated": "string" // 聊天最后更新的时间戳
-}
-```
+#53a8ff
 
-### 四、聊天记录集合（ChatRecordList）
+#66b1ff
 
-```javascript
-{
-  "user": "User", // 当前查看聊天记录的用户信息
-  "list": [ // 用户参与的所有聊天记录
-    "ChatRecord",
-    "ChatRecord"
-    // ...
-  ]
-}
-```
+#79bbff
 
-### #示例
+#8cc5ff
 
-```javascript
-{
-  "user": {
-    "userId": "123456",
-    "username": "JohnDoe",
-    "avatarUrl": "http://example.com/avatar.jpg",
-    "status": "online"
-  },
-  "chats": [
-    {
-      "chatId": "chat_001",
-      "participants": [
-        {
-          "userId": "123456",
-          "username": "JohnDoe"
-        },
-        {
-          "userId": "654321",
-          "username": "JaneDoe"
-        }
-      ],
-      "messages": [
-        {
-          "messageId": "msg_001",
-          "fromUser": {
-            "userId": "123456",
-            "username": "JohnDoe"
-          },
-          "toUser": {
-            "userId": "654321",
-            "username": "JaneDoe"
-          },
-          "content": "Hello, Jane!",
-          "timestamp": "2024-06-07T12:00:00Z",
-          "type": "text",
-          "status": "delivered",
-          "readReceipt": false
-        },
-        {
-          "messageId": "msg_002",
-          "fromUser": {
-            "userId": "654321",
-            "username": "JaneDoe"
-          },
-          "toUser": {
-            "userId": "123456",
-            "username": "JohnDoe"
-          },
-          "content": "Hi, John! How are you?",
-          "timestamp": "2024-06-07T12:05:00Z",
-          "type": "text",
-          "status": "read",
-          "readReceipt": true
-        }
-      ],
-      "lastUpdated": "2024-06-07T12:05:00Z"
-    }
-  ]
-}
-```
+#a0cfff
+
+#b3d8ff
+
+#c6e2ff
+
+#d9ecff
+
+### 二、辅助色
+
+#### 1.Success
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20191117130303884.png)
+
+#67c23a
+
+#e1f3d8
+
+#f0f9eb
+
+#### 2.Info
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/2019111713034428.png)
+
+#909399
+
+#e9e9eb
+
+#f4f4f5
+
+#### 3.Warning
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20191117130432387.png)
+
+#e6a23c
+
+#faecd8
+
+#fdf6ec
+
+#### 4.Danger
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/2019111713051750.png)
+
+#f56c6c
+
+#fde2e2
+
+#fef0f0
+
+### 三、中性色
+
+#### 1.文字
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20191117130701112.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzMyNjE3NzAz,size_16,color_FFFFFF,t_70)
+
+#303133
+
+#606266
+
+#909399
+
+#c0c4cc
+
+#### 2.边框
+
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20191117130746485.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzMyNjE3NzAz,size_16,color_FFFFFF,t_70)
+
+#dcdfe6
+
+#e4e7ed
+
+#ebeef5
+
+#f2f6fc
 
 # 数据库设计
 
@@ -132,6 +105,7 @@ CREATE TABLE IF NOT EXISTS Users (
   nickname VARCHAR(255) NOT NULL DEFAULT 'NoNickname',
   password VARCHAR(255) NOT NULL,
   avatarUrl TEXT,
+  signature TEXT,
   status ENUM('online', 'offline', 'banned') DEFAULT 'online',
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
