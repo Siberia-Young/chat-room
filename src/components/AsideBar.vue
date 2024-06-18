@@ -84,16 +84,15 @@ export default {
           ? "0" + (date.getMonth() + 1)
           : date.getMonth() + 1) + "-";
       const D = date.getDate() + " ";
-      const h = date.getHours() + ":";
-      const m = date.getMinutes() + ":";
-      const s = date.getSeconds();
+      const h = (date.getHours() < 10 ? "0" : "") + date.getHours() + ":";
+      const m = (date.getMinutes() < 10 ? "0" : "") + date.getMinutes() + ":";
+      const s = (date.getSeconds() < 10 ? "0" : "") + date.getSeconds();
       return Y + M + D + h + m + s;
     },
     doubleChat() {
       this.$router.push("/FriendView");
     },
-    groupChat() {
-    },
+    groupChat() {},
   },
 };
 </script>

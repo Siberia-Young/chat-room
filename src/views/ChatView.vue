@@ -46,27 +46,38 @@ export default {
       init: false,
       messages: [],
       participants: [],
+      timestamp: "",
     };
   },
   computed: {
     headerContent() {
-      let temp = this.chatList.filter((chat) => chat.chatId === this.chatId);
-      if (temp.length === 0) return { chatName: "", chatType: "", status: "" };
-      temp = temp[0];
+      let temp1 = this.chatList.filter((chat) => chat.chatId === this.chatId);
+      if (temp1.length === 0) return { chatName: "", chatType: "", status: "" };
+      temp1 = temp1[0];
+      let temp2 = this.friendList.filter(
+        (friend) => friend.userId === temp1.friendId
+      );
+      if (temp2.length === 0)
+        return {
+          chatName: temp1.chatName,
+          chatType:
+            temp1.chatType === "single"
+              ? "个人"
+              : temp1.chatType === "double"
+              ? "好友"
+              : "群聊",
+          status: "",
+        };
+      temp2 = temp2[0];
       let res = {
-        chatName: temp.chatName,
+        chatName: temp1.chatName,
         chatType:
-          temp.chatType === "single"
+          temp1.chatType === "single"
             ? "个人"
-            : temp.chatType === "double"
+            : temp1.chatType === "double"
             ? "好友"
             : "群聊",
-        status:
-          temp.chatType === "double"
-            ? this.friendList.filter(
-                (friend) => friend.userId === temp.friendId
-              )[0].status
-            : "",
+        status: temp1.chatType === "double" ? temp2.status : "",
       };
       return res;
     },
@@ -111,11 +122,27 @@ export default {
     },
     getMoreChatContent() {
       this.$refs.chatDisplay.changeState(true);
+      if (this.messages.length > 0) {
+        this.timestamp = this.messages[0].timestamp;
+      } else {
+        this.timestamp = new Date(
+          new Date().getTime() + 8 * 60 * 60 * 1000
+        ).toISOString();
+      }
       this.$request
-        .get(`get_messages_by_chatId/${this.chatId}`)
+        .get(
+          `get_messages_by_chatId/${this.userId}?chatId=${this.chatId}&timestamp=${this.timestamp}`
+        )
         .then((res) => {
-          console.log(res);
-          this.messages = res.data.data;
+          console.log(res.data.data);
+          if (res.data.data.length === 0) {
+            this.$message({
+              message: "没有更多消息了",
+              type: "warning",
+            });
+            return;
+          }
+          this.messages.unshift(...res.data.data);
           if (!this.init) {
             this.scrollToBottom();
             this.init = true;
@@ -147,6 +174,7 @@ export default {
           operate: "insert_message",
           token: this.$store.state.token,
           data: {
+            userId: this.userId,
             participants: this.participants,
             chatId: this.chatId,
             fromUserId: this.userId,
