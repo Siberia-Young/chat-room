@@ -134,7 +134,6 @@ export default {
           `get_messages_by_chatId/${this.userId}?chatId=${this.chatId}&timestamp=${this.timestamp}`
         )
         .then((res) => {
-          console.log(res.data.data);
           if (res.data.data.length === 0) {
             this.$message({
               message: "没有更多消息了",
@@ -179,14 +178,11 @@ export default {
             chatId: this.chatId,
             fromUserId: this.userId,
             toUserId: null,
-            content: this.inputText,
+            content: this.$emojiHandler.emojiEncode(this.inputText),
           },
         });
         this.websocket.send(data);
       }
-    },
-    modifyInputText(text) {
-      this.inputText = text;
     },
   },
 };

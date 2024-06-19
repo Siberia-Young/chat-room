@@ -22,7 +22,7 @@
               'text-left': !(message.fromUserId === userId),
             }"
           >
-            {{ message.content }}
+            {{ $emojiHandler.emojiDecode(message.content) }}
           </div>
         </div>
       </div>
@@ -52,6 +52,7 @@ export default {
       userId: this.$store.state.userId,
       isLoading: false,
       totalHeight: 0,
+      throttleGetMoreChatContent: this.throttle(this.getMoreChatContent, 500),
     };
   },
   computed: {
@@ -96,14 +97,37 @@ export default {
     },
     touchTop() {
       if (
-        this.$refs.scrollContainer.$refs.wrapRef.scrollTop <= 0.5 &&
+        this.$refs.scrollContainer.$refs.wrapRef.scrollTop === 0 &&
         !this.isLoading
       ) {
-        this.getMoreChatContent();
+        this.throttleGetMoreChatContent();
       }
     },
     getMoreChatContent() {
       this.$emit("get-more-chat-content");
+    },
+    debounce(fn, delay) {
+      let timer = null;
+      return function () {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+          fn.apply(this, arguments);
+        }, delay);
+      };
+    },
+    throttle(fn, delay) {
+      let flag = true;
+      return function () {
+        if (flag) {
+          flag = false;
+          fn.apply(this, arguments);
+          setTimeout(() => {
+            flag = true;
+          }, delay);
+        }
+      };
     },
   },
 };
