@@ -67,6 +67,27 @@ export default {
           let friendList = this.$store.state.friendList;
           friendList[friendIndex].status = data.data.status;
           this.$store.commit("setFriendList", friendList);
+        } else if (data.operate === "send_friend_request") {
+          if (data.data.success) {
+            if (data.data.fromUserId === this.$store.state.userId) {
+              this.$message.success("您已成功发送好友请求！");
+            } else {
+              this.$message.success("您有新的好友请求！");
+            }
+            this.$store.commit(
+              "setFriendRequestList",
+              data.data.friendRequestList
+            );
+          } else {
+            this.$message.error(data.data.message);
+          }
+        } else if (data.operate === "accept_friend_request") {
+          this.$store.commit("setChatList", data.data.chatList);
+          this.$store.commit("setFriendList", data.data.friendList);
+          this.$store.commit(
+            "setFriendRequestList",
+            data.data.friendRequestList
+          );
         }
       };
 

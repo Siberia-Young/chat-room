@@ -14,7 +14,7 @@
               @click="selectChatItem"
             >
               <div class="chat-item-title">
-                {{ chat.chatName
+                {{ $emojiHandler.emojiDecode(chat.chatName)
                 }}<span
                   >({{
                     chat.chatType === "single"
@@ -27,8 +27,8 @@
               </div>
               <div class="second-line">
                 <div class="chat-item-msg">
-                  {{ chat.latestMessageFromNickname }}：{{
-                    chat.latestMessageContent
+                  {{ $emojiHandler.emojiDecode(chat.latestMessageFromNickname) }}：{{
+                    $emojiHandler.emojiDecode(chat.latestMessageContent)
                   }}
                 </div>
                 <div class="chat-item-time">

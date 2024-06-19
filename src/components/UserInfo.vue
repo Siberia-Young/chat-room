@@ -5,9 +5,12 @@
     </div>
     <div class="user-info-info">
       <div class="user-info-nickname">
-        {{ user.nickname }}<span>({{ user.userId }})</span>
+        {{ $emojiHandler.emojiDecode(user.nickname)
+        }}<span>({{ user.userId }})</span>
       </div>
-      <div class="user-info-signature">个性签名：{{ user.signature }}</div>
+      <div class="user-info-signature">
+        个性签名：{{ $emojiHandler.emojiDecode(user.signature) }}
+      </div>
     </div>
     <slot></slot>
   </div>
