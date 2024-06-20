@@ -208,7 +208,7 @@ CREATE TABLE FriendRequests (
     requestId CHAR(36) NOT NULL PRIMARY KEY,
     fromUserId CHAR(36) NOT NULL,
     toUserId CHAR(36) NOT NULL,
-    status ENUM('pending', 'accepted', 'declined', 'cancelled') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'accepted', 'rejected', 'cancelled') NOT NULL DEFAULT 'pending',
     createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     message TEXT,

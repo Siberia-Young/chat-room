@@ -8,6 +8,7 @@ export default createStore({
         token: "",
         userId: "",
         chatId: "",
+        user: null,
         chatList: [],
         friendList: [],
         friendRequestList: []
@@ -24,6 +25,9 @@ export default createStore({
         },
         setChatId(state, chatId) {
             state.chatId = chatId;
+        },
+        setUser(state, user) {
+            state.user = user;
         },
         setChatList(state, chatList) {
             state.chatList = chatList;
