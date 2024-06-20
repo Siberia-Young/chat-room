@@ -81,13 +81,62 @@ export default {
           } else {
             this.$message.error(data.data.message);
           }
+        } else if (data.operate === "modify_friend_request") {
+          if (data.data.success) {
+            if (data.data.fromUserId === this.$store.state.userId) {
+              this.$message.success("您已成功修改好友请求！");
+            } else {
+              this.$message.success("您有新的好友请求！");
+            }
+            this.$store.commit(
+              "setFriendRequestList",
+              data.data.friendRequestList
+            );
+          } else {
+            this.$message.error(data.data.message);
+          }
+        } else if (data.operate === "cancel_friend_request") {
+          if (data.data.success) {
+            if (data.data.fromUserId === this.$store.state.userId) {
+              this.$message.success("您已成功取消好友请求！");
+            }
+            this.$store.commit(
+              "setFriendRequestList",
+              data.data.friendRequestList
+            );
+          } else {
+            this.$message.error(data.data.message);
+          }
+        } else if (data.operate === "reject_friend_request") {
+          if (data.data.success) {
+            if (data.data.toUserId === this.$store.state.userId) {
+              this.$message.success("您已成功拒绝好友请求！");
+            } else {
+              this.$message.success("对方拒绝好友请求！");
+            }
+            this.$store.commit(
+              "setFriendRequestList",
+              data.data.friendRequestList
+            );
+          } else {
+            this.$message.error(data.data.message);
+          }
         } else if (data.operate === "accept_friend_request") {
-          this.$store.commit("setChatList", data.data.chatList);
-          this.$store.commit("setFriendList", data.data.friendList);
-          this.$store.commit(
-            "setFriendRequestList",
-            data.data.friendRequestList
-          );
+          if (data.data.success) {
+            if (data.data.toUserId === this.$store.state.userId) {
+              this.$message.success("您已成功接受好友请求！");
+            } else {
+              this.$message.success("对方接受好友请求！");
+            }
+            this.$store.commit("setChatList", data.data.chatList);
+            this.$store.commit("setFriendList", data.data.friendList);
+            this.$store.commit(
+              "setFriendRequestList",
+              data.data.friendRequestList
+            );
+          } else {
+            this.$message.error(data.data.message);
+          }
         }
       };
 

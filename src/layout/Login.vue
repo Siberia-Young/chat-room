@@ -36,7 +36,7 @@ export default {
   methods: {
     login() {
       this.$request
-        .post("http://47.113.109.49:6001/login", {
+        .post("login", {
           username: this.username,
           password: this.password,
         })
@@ -44,10 +44,11 @@ export default {
           if (res.status === 200) {
             this.$message.success("登录成功");
             sessionStorage.setItem("token", res.data.token);
-            sessionStorage.setItem("userId", res.data.userId);
+            sessionStorage.setItem("userId", res.data.user.userId);
             this.$store.commit("setToken", res.data.token);
-            this.$store.commit("setUserId", res.data.userId);
+            this.$store.commit("setUserId", res.data.user.userId);
             this.$store.commit("setChatId", res.data.chatId);
+            this.$store.commit("setUser", res.data.user);
             this.$router.push("/");
           } else {
             this.$message.error("登录失败");

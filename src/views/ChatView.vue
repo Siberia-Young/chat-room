@@ -1,9 +1,11 @@
 <template>
   <div class="chat-view">
     <div class="header">
-      {{ headerContent.chatName }}({{ headerContent.chatType }})-{{
-        headerContent.status
-      }}
+      {{ $emojiHandler.emojiDecode(headerContent.chatName) }}({{
+        chatTypeShow(headerContent.chatType)
+      }})<span v-if="headerContent.chatType === 'double'"
+        >-{{ headerContent.status === "online" ? "🟢在线" : "🔴离线" }}</span
+      >
     </div>
     <ChatDisplay
       class="chat-display"
@@ -60,23 +62,13 @@ export default {
       if (temp2.length === 0)
         return {
           chatName: temp1.chatName,
-          chatType:
-            temp1.chatType === "single"
-              ? "个人"
-              : temp1.chatType === "double"
-              ? "好友"
-              : "群聊",
+          chatType: temp1.chatType,
           status: "",
         };
       temp2 = temp2[0];
       let res = {
         chatName: temp1.chatName,
-        chatType:
-          temp1.chatType === "single"
-            ? "个人"
-            : temp1.chatType === "double"
-            ? "好友"
-            : "群聊",
+        chatType: temp1.chatType,
         status: temp1.chatType === "double" ? temp2.status : "",
       };
       return res;
@@ -112,6 +104,15 @@ export default {
     this.initChat();
   },
   methods: {
+    chatTypeShow(chatType) {
+      return chatType === "single"
+        ? "本人"
+        : chatType === "double"
+        ? "好友"
+        : chatType === "group"
+        ? "群聊"
+        : "未知";
+    },
     initChat() {
       this.participants = [];
       this.messages = [];

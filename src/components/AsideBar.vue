@@ -15,21 +15,13 @@
             >
               <div class="chat-item-title">
                 {{ $emojiHandler.emojiDecode(chat.chatName)
-                }}<span
-                  >({{
-                    chat.chatType === "single"
-                      ? "个人"
-                      : chat.chatType === "double"
-                      ? "好友"
-                      : "群聊"
-                  }})</span
-                >
+                }}<span>({{ chatTypeShow(chat.chatType) }})</span>
               </div>
               <div class="second-line">
                 <div class="chat-item-msg">
-                  {{ $emojiHandler.emojiDecode(chat.latestMessageFromNickname) }}：{{
-                    $emojiHandler.emojiDecode(chat.latestMessageContent)
-                  }}
+                  {{
+                    $emojiHandler.emojiDecode(chat.latestMessageFromNickname)
+                  }}：{{ $emojiHandler.emojiDecode(chat.latestMessageContent) }}
                 </div>
                 <div class="chat-item-time">
                   {{ timestampToTime(chat.latestMessageTime) }}
@@ -51,8 +43,29 @@
       />
     </div>
     <div class="operate">
-      <button class="double" @click="doubleChat">找人聊天</button>
-      <button class="group" @click="groupChat">发起群聊</button>
+      <div class="chat-operate">
+        <button class="double" @click="doubleChat">找人聊天</button>
+        <button class="group" @click="groupChat">发起群聊</button>
+      </div>
+      <div class="own-info">
+        <div class="avatar">
+          <img :src="user.avatarUrl" alt="avatar" />
+        </div>
+        <div class="info">
+          <div class="nickname">
+            {{ $emojiHandler.emojiDecode(user.nickname)
+            }}<span>({{ user.userId }})</span>
+          </div>
+          <div class="status">{{ "🟢在线" }}</div>
+          <div class="signature">
+            {{ $emojiHandler.emojiDecode(user.signature) }}
+          </div>
+        </div>
+      </div>
+      <div class="setting">
+        <el-button type="text" @click="logout">退出登录</el-button>
+        <el-button type="text" @click="setting">设置</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -70,11 +83,23 @@ export default {
     chatList() {
       return this.$store.state.chatList;
     },
+    user() {
+      return this.$store.state.user;
+    },
   },
   methods: {
     selectChatItem(event) {
       this.$router.push("/ChatView");
       this.$store.commit("setChatId", event.currentTarget.dataset.chatid);
+    },
+    chatTypeShow(chatType) {
+      return chatType === "single"
+        ? "本人"
+        : chatType === "double"
+        ? "好友"
+        : chatType === "group"
+        ? "群聊"
+        : "未知";
     },
     timestampToTime(timestamp) {
       const date = new Date(timestamp);
@@ -235,6 +260,16 @@ export default {
   width: 100%;
   height: 30%;
   display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+}
+
+.aside-bar .chat-operate {
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
 }
@@ -259,6 +294,56 @@ export default {
 .aside-bar .operate button:active {
   cursor: default;
   background-color: #1d93ab;
+}
+
+.aside-bar .own-info {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.aside-bar .avatar img {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+}
+
+.aside-bar .info {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.aside-bar .nickname {
+  font-size: 3vh;
+  font-weight: bold;
+}
+
+.aside-bar .nickname span {
+  font-size: 2vh;
+  color: #909399;
+}
+
+.aside-bar .status {
+  font-size: 2vh;
+  color: #606266;
+}
+
+.aside-bar .signature {
+  font-size: 1.5px;
+  color: #606266;
+}
+
+.aside-bar .setting {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
 }
 </style>
   

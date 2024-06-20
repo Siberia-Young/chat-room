@@ -35,39 +35,40 @@
                 <div class="result-item-status">{{ searchResult.status }}</div>
               </div>
               <div class="result-item-operate">
-                <span>{{ relationship(searchResult.userId) }}</span>
+                <span v-html="relationShow(searchResult.relation)"></span>
                 <button
-                  v-if="relationship(searchResult.userId) === 'friend'"
+                  v-if="searchResult.relation === 'friend'"
                   @click="chatWithTA(searchResult.userId)"
                 >
                   找TA聊天
                 </button>
                 <button
-                  v-if="relationship(searchResult.userId) === 'stranger'"
+                  v-if="
+                    searchResult.relation === 'stranger' ||
+                    searchResult.relation === 'my_rejected' ||
+                    searchResult.relation === 'his_cancelled'
+                  "
                   @click="addFriend(searchResult.userId)"
                 >
                   加为好友
                 </button>
                 <button
-                  v-if="relationship(searchResult.userId) === 'my_pending'"
+                  v-if="searchResult.relation === 'my_pending'"
                   @click="acceptRequest(searchResult.userId)"
                 >
                   通过申请
                 </button>
                 <button
-                  v-if="relationship(searchResult.userId) === 'his_pending'"
+                  v-if="searchResult.relation === 'his_pending'"
                   @click="modifyRequest(searchResult.userId)"
                 >
                   修改申请
                 </button>
                 <button
-                  v-if="relationship(searchResult.userId) === 'my_rejected'"
-                  @click="addFriend(searchResult.userId)"
-                >
-                  重新申请
-                </button>
-                <button
-                  v-if="relationship(searchResult.userId) === 'his_rejected'"
+                  v-if="
+                    searchResult.relation === 'his_rejected' ||
+                    searchResult.relation === 'my_cancelled'
+                  "
                   @click="addFriend(searchResult.userId)"
                 >
                   再次申请
@@ -96,14 +97,9 @@
                 {{ $emojiHandler.emojiDecode(friend.nickname)
                 }}<span>({{ friend.userId }})</span>
               </div>
-              <div class="mask" v-if="infoDisplay">
-                <UserInfo class="user-info" :user="user">
-                  <el-button type="danger" @click="this.infoDisplay = false">
-                    关闭
-                  </el-button>
-                </UserInfo>
+              <div class="friend-item-status">
+                {{ friend.status === "online" ? "🟢在线" : "🔴离线" }}
               </div>
-              <div class="friend-item-status">{{ friend.status }}</div>
             </div>
             <div class="friend-item-operate">
               <button @click="chatWithTA(friend.userId)">找TA聊天</button>
@@ -128,16 +124,27 @@
             </div>
             <div class="request-item-info">
               <div class="request-item-nickname">
-                {{ request.user.nickname
+                {{ $emojiHandler.emojiDecode(request.user.nickname)
                 }}<span>({{ request.user.userId }})</span>
               </div>
               <div class="request-item-message">
-                留言：{{ request.message }}
+                留言：{{ $emojiHandler.emojiDecode(request.message) }}
               </div>
             </div>
             <div class="request-operate">
-              <button v-if="request.status === 'pending'">取消</button>
-              <span v-else>{{ request.status }}</span>
+              <button
+                v-if="request.status === 'pending'"
+                @click="modifyRequest(request.toUserId)"
+              >
+                修改
+              </button>
+              <button
+                v-if="request.status === 'pending'"
+                @click="cancelRequest(request.toUserId)"
+              >
+                取消
+              </button>
+              <span v-else v-html="requestStatusShow(request.status)"></span>
             </div>
           </div>
         </div>
@@ -171,21 +178,41 @@
               >
                 同意
               </button>
-              <span v-else>{{ request.status }}</span>
+              <button
+                v-if="request.status === 'pending'"
+                @click="rejectRequest(request.user.userId)"
+              >
+                拒绝
+              </button>
+              <span v-else v-html="requestStatusShow(request.status)"></span>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="mask" v-if="infoDisplay">
+      <UserInfo class="user-info" :user="user">
+        <el-button type="danger" @click="this.infoDisplay = false">
+          关闭
+        </el-button>
+      </UserInfo>
+    </div>
   </div>
+  <MessagePopbox
+    ref="MessagePopbox"
+    @add-friend="sendAddFriend"
+    @modify-request="sendModifyRequest"
+  />
 </template>
 
 <script>
-import UserInfo from "@/components/UserInfo.vue";
+import UserInfo from "@/components/UserInfo";
+import MessagePopbox from "@/components/MessagePopbox";
 export default {
   name: "FriendView",
   components: {
     UserInfo,
+    MessagePopbox,
   },
   data() {
     return {
@@ -199,7 +226,7 @@ export default {
         status: "",
         createAt: "",
       },
-      searchResultList: [],
+      searchResults: [],
       infoDisplay: false,
       searchWord: "",
       requestText: "你好，我想加你为好友",
@@ -216,40 +243,89 @@ export default {
     friendRequestList() {
       return this.$store.state.friendRequestList;
     },
+    searchResultList() {
+      return this.searchResults.map((item) => {
+        let relation = this.relationship(item.userId);
+        return {
+          ...item,
+          relation,
+        };
+      });
+    },
   },
   watch: {
     searchWord() {
       if (this.searchWord === "") {
-        this.searchResultList = [];
+        this.searchResults = [];
       }
     },
   },
   methods: {
+    relationShow(relation) {
+      if (relation === "own") return `<span style="color: blue;">本人</span>`;
+      else if (relation === "friend")
+        return `<span style="color: green;">好友</span>`;
+      else if (relation === "stranger")
+        return `<span style="color: grey;">陌生人</span>`;
+      else if (relation === "my_pending")
+        return `<span style="color: orange;">待我处理</span>`;
+      else if (relation === "his_pending")
+        return `<span style="color: orange;">待TA处理</span>`;
+      else if (relation === "my_rejected")
+        return `<span style="color: red;">已拒绝</span>`;
+      else if (relation === "his_rejected")
+        return `<span style="color: red;">被拒绝</span>`;
+      else if (relation === "my_cancelled")
+        return `<span style="color: pink;">已取消</span>`;
+      else if (relation === "his_cancelled")
+        return `<span style="color: pink;">被取消</span>`;
+      else return "未知";
+    },
+    requestStatusShow(status) {
+      if (status === "pending")
+        return `<span style="color: orange;">待处理</span>`;
+      else if (status === "accepted")
+        return `<span style="color: green;">已接受</span>`;
+      else if (status === "rejected")
+        return `<span style="color: red;">已拒绝</span>`;
+      else if (status === "cancelled")
+        return `<span style="color: pink;">已取消</span>`;
+      else return "未知";
+    },
     relationship(userId) {
       if (userId === this.$store.state.userId) return "own";
       else {
-        let user = this.friendRequestList.find(
+        let s_request = this.friendRequestList.filter(
+          (item) =>
+            item.fromUserId === this.$store.state.userId &&
+            item.toUserId === userId
+        );
+        let r_request = this.friendRequestList.filter(
           (item) =>
             item.fromUserId === userId &&
             item.toUserId === this.$store.state.userId
         );
-        if (user) {
-          if (user.status === "pending") return "my_pending";
-          else if (user.status === "accepted") return "friend";
-          else if (user.status === "declined") return "my_rejected";
-          else return "unknown";
-        } else {
-          user = this.friendRequestList.find(
-            (item) =>
-              item.fromUserId === this.$store.state.userId &&
-              item.toUserId === userId
+        if (s_request.length === 0 && r_request.length === 0) return "stranger";
+        else {
+          let request = s_request.concat(r_request);
+          request.sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           );
-          if (user) {
-            if (user.status === "pending") return "his_pending";
-            else if (user.status === "accepted") return "friend";
-            else if (user.status === "declined") return "his_rejected";
+          request = request[0];
+          if (request.fromUserId === userId) {
+            if (request.status === "pending") return "my_pending";
+            else if (request.status === "accepted") return "friend";
+            else if (request.status === "rejected") return "my_rejected";
+            else if (request.status === "cancelled") return "his_cancelled";
             else return "unknown";
-          } else return "stranger";
+          } else {
+            if (request.status === "pending") return "his_pending";
+            else if (request.status === "accepted") return "friend";
+            else if (request.status === "rejected") return "his_rejected";
+            else if (request.status === "cancelled") return "my_cancelled";
+            else return "unknown";
+          }
         }
       }
     },
@@ -260,15 +336,22 @@ export default {
       this.infoDisplay = true;
     },
     addFriend(userId) {
-      // console.log("add friend", userId);
-      // this.openDialog();
+      this.$refs.MessagePopbox.openDialog(
+        userId,
+        this.$emojiHandler.emojiDecode(this.requestText),
+        "addFriend"
+      );
+    },
+    sendAddFriend(form) {
       let data = JSON.stringify({
         operate: "send_friend_request",
         token: this.$store.state.token,
         data: {
           userId: this.$store.state.userId,
-          toUserId: userId,
-          message: this.requestText,
+          toUserId: form.userId,
+          message: this.$emojiHandler.emojiEncode(
+            form.requestText === "" ? this.requestText : form.requestText
+          ),
         },
       });
       this.websocket.send(data);
@@ -291,6 +374,62 @@ export default {
       });
       this.websocket.send(data);
     },
+    cancelRequest(userId) {
+      this.sendCancelRequest(userId);
+    },
+    sendCancelRequest(userId) {
+      let data = JSON.stringify({
+        operate: "cancel_friend_request",
+        token: this.$store.state.token,
+        data: {
+          userId: this.$store.state.userId,
+          toUserId: userId,
+        },
+      });
+      this.websocket.send(data);
+    },
+    modifyRequest(userId) {
+      this.$refs.MessagePopbox.openDialog(
+        userId,
+        this.$emojiHandler.emojiDecode(
+          this.friendRequestList.find(
+            (item) =>
+              item.fromUserId === this.$store.state.userId &&
+              item.toUserId === userId &&
+              item.status === "pending"
+          ).message
+        ),
+        "modifyRequest"
+      );
+    },
+    sendModifyRequest(form) {
+      let data = JSON.stringify({
+        operate: "modify_friend_request",
+        token: this.$store.state.token,
+        data: {
+          userId: this.$store.state.userId,
+          toUserId: form.userId,
+          message: this.$emojiHandler.emojiEncode(
+            form.requestText === "" ? this.requestText : form.requestText
+          ),
+        },
+      });
+      this.websocket.send(data);
+    },
+    rejectRequest(userId) {
+      this.sendRejectRequest(userId);
+    },
+    sendRejectRequest(userId) {
+      let data = JSON.stringify({
+        operate: "reject_friend_request",
+        token: this.$store.state.token,
+        data: {
+          userId: this.$store.state.userId,
+          fromUserId: userId,
+        },
+      });
+      this.websocket.send(data);
+    },
     searchUsers() {
       if (this.searchWord === "") return;
       this.$request
@@ -298,7 +437,7 @@ export default {
           `search_users/${this.$store.state.userId}?keyword=${this.searchWord}`
         )
         .then((res) => {
-          this.searchResultList = res.data.data;
+          this.searchResults = res.data.data;
         })
         .catch((err) => {
           console.error(err);
